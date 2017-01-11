@@ -1,0 +1,7 @@
+{
+  "name": "Play Framework Scala seed",
+  "description": "A basic skeleton for Play Framework in Scala language.",
+  "repository": "https://github.com/KamilLelonek/play-framework-scala-seed",
+  "logo": "https://playframework.com/assets/images/logos/play_full_color.svg",
+  "keywords": ["scala", "playframework", "play"]
+}

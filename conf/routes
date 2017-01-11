@@ -1,0 +1,3 @@
+GET / controllers.Application.index
+
+POST /xl-spaceship/protocol/game/new controllers.Application.newGame
