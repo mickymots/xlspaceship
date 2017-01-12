@@ -8,13 +8,18 @@ import play.api.libs.json._
 import models.{GameRequest, Protocol}
 import play.api.Logger
 
+
+import play.api.libs.json._
+import play.api.libs.json.Reads._
+import play.api.libs.functional.syntax._
+
 object Application extends Application {
 
   val gameService: GameService = GameService
 }
 
 
-trait Application extends BaseController with GameFormatter {
+trait Application extends BaseController  {
 
   def gameService: GameService
 
@@ -30,13 +35,21 @@ trait Application extends BaseController with GameFormatter {
 
   def newGame = Action { implicit request =>
 
-    val jsonData = request.body.asJson.get
-    val protocol = Protocol( (jsonData \ "spaceship_protocol" \ "hostname" ).as[String], (jsonData \ "spaceship_protocol" \ "port" ).as[Int])
-    val gameRequest = GameRequest ( (jsonData \ "user_id" ).as[String],(jsonData \ "full_name" ).as[String], protocol)
+    val json = request.body.asJson.get
 
-    Logger.debug("gameRequest = " + gameRequest)
+    json.validate[GameRequest] match {
+      case s: JsSuccess[GameRequest] => {
+        val gameRequest: GameRequest = s.get
 
-    Ok(createNewGame(gameRequest))
+        Logger.debug("gameRequest = " + gameRequest)
+
+        Ok(createNewGame(gameRequest))
+      }
+      case e: JsError => {
+        // error handling flow
+        Ok(toJson("Error in request"))
+      }
+    }
   }
 
   private def createNewGame (gameRequest: GameRequest) = {

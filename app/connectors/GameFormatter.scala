@@ -28,16 +28,4 @@ trait GameFormatter {
       "game_id" -> game.id
     )
   }
-
-  implicit val gameRequestReads: Reads[GameRequest] = (
-    (JsPath \ "user_id").read[String] and
-      (JsPath \ "full_name").read[String] and
-      (JsPath \ "spaceship_protocol").read[Protocol]
-    )(GameRequest.apply _)
-
-  implicit val protocolReads: Reads[Protocol] = (
-    (JsPath \ "hostname").read[String] and
-      (JsPath \ "port").read[Int]
-    )(Protocol.apply _)
-
 }
