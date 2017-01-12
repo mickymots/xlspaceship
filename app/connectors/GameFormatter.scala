@@ -1,10 +1,7 @@
 package connectors
 
 import models._
-import play.api.libs.json.{Json, Writes}
-import play.api.libs.json._ // JSON library
-import play.api.libs.json.Reads._ // Custom validation helpers
-import play.api.libs.functional.syntax._ // Combinator syntax
+import play.api.libs.json.{Json, Writes} // Combinator syntax
 
 trait GameFormatter {
 
@@ -26,6 +23,5 @@ trait GameFormatter {
       "game_id" -> game.id
     )
   }
-
 
 }
