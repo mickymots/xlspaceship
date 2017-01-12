@@ -1,9 +1,22 @@
 package controllers
 
+import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.libs.json.Json._
+import services.GameService
 
-object Application extends Controller {
+import connectors.{GameFormatter}
+
+object Application extends Application {
+
+  val gameService: GameService = GameService
+
+}
+
+
+trait Application extends Controller  with GameFormatter {
+
+  def gameService: GameService
 
   def index = Action { implicit request =>
     Ok(currentApi)
@@ -22,8 +35,6 @@ object Application extends Controller {
   }
 
   private def createNewGame(implicit request: RequestHeader) = {
-    toJson(Map(
-      "root" -> "hello there"
-    ))
+      toJson(gameService.createGame())
   }
 }
