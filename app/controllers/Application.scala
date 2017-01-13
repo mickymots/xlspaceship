@@ -23,16 +23,19 @@ trait Application extends BaseController  {
 
   def gameService: GameService
 
-  def index = Action { implicit request =>
-    Ok(currentApi)
+
+
+  def showGameStatus(gameID: String) = Action { implicit request =>
+
+    val gameStatus = gameService.getGame(gameID)
+
+    if(gameStatus != null){
+      Ok(toJson(gameStatus))
+    }else
+    Ok("Game not found")
   }
 
-  private def currentApi(implicit request: RequestHeader) = {
-    toJson(Map(
-      "root" -> request.uri
-    ))
-  }
-
+  /* newGame handles the simulation request for a game from user. Response contains player details and game_id.*/
   def newGame = Action { implicit request =>
 
     val json = request.body.asJson.get
@@ -52,7 +55,18 @@ trait Application extends BaseController  {
     }
   }
 
+  /*Delegate method that invokes service calls and processes response from service*/
   private def createNewGame (gameRequest: GameRequest) = {
-    toJson(gameService.createGame())
+
+    val game = gameService createGame gameRequest
+
+    toJson(Map(
+      "user_id" -> game.self.id,
+      "full_name" -> game.self.name,
+      "game_id" -> game.id,
+      "starting" -> game.nextTurn.id
+    ))
   }
+
+
 }

@@ -1,6 +1,6 @@
 package services
 
-import models.{Player, Board, Game, Spaceship}
+import models._
 /**
   * Created by amit.prakash.singh on 12/01/2017.
   */
@@ -9,19 +9,36 @@ import models.{Player, Board, Game, Spaceship}
 import play.api.Logger
 
 object PlayerService extends PlayerService {
-
+  val iDGeneratorService : IDGeneratorService = IDGeneratorService
+  val boardService : BoardService = BoardService
+  val spaceshipService : SpaceshipService = SpaceshipService
 }
 
-trait PlayerService{
+trait PlayerService {
 
-  def createPlayer(): Player = {
+  val iDGeneratorService : IDGeneratorService
+  val boardService : BoardService
+  val spaceshipService : SpaceshipService
 
 
-    Player("Player-1", "Player-1", null, null)
- /*   val opponent = Player("Player-2", "Player-2", null, null)
+  def createPlayer(): Player ={
+      val nextID = iDGeneratorService.getNext()
 
-    val players = Array(player, opponent) //players : Array[Player], complete: Boolean, winner: String, nextTurn: String)
-    Game("Game-x", players, false, null, opponent)*/
+      val playerID = "Player-" + nextID
+      val playerName = "Player " + nextID
+
+      Logger.debug("ID = "  + playerID)
+
+      val board = boardService.createBoard()
+      val spaceships = spaceshipService.createSpaceships(board)
+
+      Player(playerID, playerName, spaceships, board)
+
+  }
+
+  def createOpponent(gameRequest: GameRequest): Player ={
+      val board = boardService.createBoard()
+      Player(gameRequest.userId, gameRequest.userName, null, board)
   }
 
 }

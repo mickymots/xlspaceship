@@ -1,3 +1,3 @@
 package models
 
-case class cell (x: Int, y:Int, status: String)
+case class Cell (x: Int, y:Int, var status: String)
