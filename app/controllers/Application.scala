@@ -3,12 +3,10 @@ package controllers
 import play.api.mvc._
 import play.api.libs.json.Json._
 import services.GameService
-import connectors.{GameFormatter}
+import connectors.GameFormatter
 import play.api.libs.json._
-import models.{GameRequest, Protocol}
+import models.{GameRequest, Protocol, Salvo}
 import play.api.Logger
-
-
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
@@ -24,7 +22,17 @@ trait Application extends BaseController  {
   def gameService: GameService
 
 
+  def acceptSalvo(gameID: String) = Action { implicit request =>
 
+    val json = request.body.asJson.get
+
+    val salvo = Salvo((json \ "salvo").as[Seq[String]])
+    Logger.debug("salvo" + salvo)
+
+    Ok(toJson("salvo received"))
+  }
+
+    /*get current game status*/
   def showGameStatus(gameID: String) = Action { implicit request =>
 
     val gameStatus = gameService.getGame(gameID)

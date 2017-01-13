@@ -2,8 +2,8 @@
 #create a new game simulation
 POST /xl-spaceship/protocol/game/new controllers.Application.newGame
 
-#accept a salvo from opponent
-PUT /xl-spaceship/protocol/game/<game_id>
+#accept salvo from opponent
+PUT /xl-spaceship/protocol/game/:gameID controllers.Application.acceptSalvo(gameID: String)
 
 #Get current game status
 GET /xl-spaceship/user/game/:gameID controllers.Application.showGameStatus(gameID: String)
