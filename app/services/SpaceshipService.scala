@@ -24,27 +24,27 @@ trait SpaceshipService {
     var nextID = iDGeneratorService.getNext()
     var coordinates = boardService.allocateCoordinates (board)
     boardService.updateBoard(board, coordinates, "*")
-    val winger = Spaceship("spaceship-" + nextID, "Winger", coordinates(0), coordinates(1), true)
+    val winger = Spaceship("spaceship-" + nextID, "Winger", coordinates(0), coordinates(1), "active")
 
     nextID = iDGeneratorService.getNext()
     coordinates = boardService.allocateCoordinates (board)
     boardService.updateBoard(board, coordinates, "*")
-    val angle = Spaceship("spaceship-" + nextID, "Angle", coordinates(0), coordinates(1), true)
+    val angle = Spaceship("spaceship-" + nextID, "Angle", coordinates(0), coordinates(1), "active")
 
     nextID = iDGeneratorService.getNext()
     coordinates = boardService.allocateCoordinates (board)
     boardService.updateBoard(board, coordinates, "*")
-    val aClass = Spaceship("spaceship-" + nextID, "A-Class", coordinates(0), coordinates(1), true)
+    val aClass = Spaceship("spaceship-" + nextID, "A-Class", coordinates(0), coordinates(1), "active")
 
     nextID = iDGeneratorService.getNext()
     coordinates = boardService.allocateCoordinates (board)
     boardService.updateBoard(board, coordinates, "*")
-    val bClass = Spaceship("spaceship-" + nextID, "B-Class", coordinates(0), coordinates(1), true)
+    val bClass = Spaceship("spaceship-" + nextID, "B-Class", coordinates(0), coordinates(1), "active")
 
     nextID = iDGeneratorService.getNext()
     coordinates = boardService.allocateCoordinates (board)
     boardService.updateBoard(board, coordinates, "*")
-    val sClass = Spaceship("spaceship-" + nextID, "S-Class", coordinates(0), coordinates(1), true)
+    val sClass = Spaceship("spaceship-" + nextID, "S-Class", coordinates(0), coordinates(1), "active")
 
     Array(winger,angle,aClass,bClass,sClass)
 

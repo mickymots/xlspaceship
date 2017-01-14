@@ -22,20 +22,24 @@ trait Application extends BaseController  {
   def gameService: GameService
 
 
+  /*Handles the incoming salvo from opponent*/
   def acceptSalvo(gameID: String) = Action { implicit request =>
 
     val json = request.body.asJson.get
-
     val salvo = Salvo((json \ "salvo").as[Seq[String]])
     Logger.debug("salvo" + salvo)
+    val status = gameService.acceptSalvo(gameID, salvo)
 
-    Ok(toJson("salvo received"))
+    if(!status.gameComplete)
+    Ok(toJson(status))
+    else
+      NotFound(toJson(status))
   }
 
-    /*get current game status*/
+  /*Handles the current game status request from the user*/
   def showGameStatus(gameID: String) = Action { implicit request =>
 
-    val gameStatus = gameService.getGame(gameID)
+    val gameStatus = gameService.getGameStatus(gameID)
 
     if(gameStatus != null){
       Ok(toJson(gameStatus))

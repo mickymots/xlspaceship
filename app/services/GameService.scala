@@ -6,25 +6,26 @@ import play.libs.F.None
 import sun.net.dns.ResolverConfiguration.Options
 
 import scala.collection.mutable.ArrayBuffer
-import scala.util.Random
-/**
-  * Created by amit.prakash.singh on 12/01/2017.
-  */
 
+import scala.util.Try
 
 import play.api.Logger
 
 object GameService extends GameService {
   val iDGeneratorService : IDGeneratorService = IDGeneratorService
   val playerService : PlayerService = PlayerService
+  val boardService : BoardService = BoardService
 }
 
 trait GameService {
 
   val iDGeneratorService : IDGeneratorService
   val playerService : PlayerService
+  val boardService : BoardService
+
   val games = scala.collection.mutable.Map[String, Game]()
 
+  /*Creates a new game*/
   def createGame(gameRequest: GameRequest): Game= {
 
     val player = playerService.createPlayer()
@@ -41,7 +42,9 @@ trait GameService {
     game
   }
 
-  def getGame(gameID : String): GameStatus ={
+
+  /*finds a game for DB and returns its status*/
+  def getGameStatus(gameID : String): GameStatus ={
 
     var gameStatus : GameStatus =  null
     games get gameID match {
@@ -50,124 +53,130 @@ trait GameService {
         gameStatus = GameStatus(game.self, game.opponents(0), game.nextTurn)
         gameStatus
       }
-        case e: None[Game] =>{
-          Logger.error("Game not found")
-          gameStatus
-        }
     }
   }
 
+  /*finds a game for repos and returns its status*/
+  def acceptSalvo(gameID : String, salvo: Salvo): SalvoStatus ={
+    Logger.debug("\n\n----- Accept Salvo --------\n\n")
+    games get gameID match {
+      case s: Option[Game] => {
 
-  /*private def createPlayer(gameRequest: GameRequest): Player ={
+        val game = s.get
+        val hits = ArrayBuffer[Hit]()
 
-    if(gameRequest == null){
+        if(!game.complete){
 
-      val nextID = iDGeneratorService.getNext()
+          val self = game.self
+          val spaceships = self.spaceships
+          for (position <- salvo.hits) {
+            val hit = Hit(position, "miss")
+            val coordinates = getCoordinate(position)
 
-      val playerID = "Player-" + nextID
-      val playerName = "Player " + nextID
+            var success = false
+            for (spaceship <- spaceships) {
+              if(!success)
+                success = processSalvo(self.board, hit, spaceship, coordinates)
+            }
+            hits += hit
+          }
 
-      Logger.debug("ID = "  + playerID)
+          var gameOver = true
 
-      val board = createBoard()
-      val spaceships = createSpaceships(board)
+          for (spaceship <- spaceships) {
+            if(spaceship.status.equals("active") || spaceship.status.equals("hit"))
+              gameOver = false
+          }
+          if(gameOver)
+            game.complete = true
 
-      Player(playerID, playerName, spaceships, board)
-
-
-    }else{
-      val board = createBoard()
-      Player(gameRequest.userId, gameRequest.userName, null, board)
-    }
-  }*/
-
-  /**/
- /* private def createBoard(): Board ={
-
-    val nextID = iDGeneratorService.getNext()
-    val boardID = "Board-" + nextID
-
-
-      val rows = ArrayBuffer[Row]()
-
-      for (i <- 0 to 15) {
-
-        val columns = ArrayBuffer[Cell]()
-
-        for (j <- 0 to 15){
-          columns += Cell(i,j,".")
+          SalvoStatus(hits, self, gameOver, false)
+        }else{
+          for (position <- salvo.hits) {
+            val hit = Hit(position, "miss")
+            hits += hit
+          }
+          SalvoStatus(hits, game.self, game.complete, game.complete )
         }
 
-        rows += Row(i,columns.toArray)
+
+
       }
-
-    Logger.debug("----Board created--" + rows.toString)
-    Board(boardID, rows.toArray)
-  }*/
-
-  /*/*get random position on board*/
-  private def allocateCoordinates(board: Board): Array[Int] = {
-
-    Logger.debug("---Allocate coordinates---")
-
-    var allocated = false
-    val coordinates = ArrayBuffer[Int]()
-    val randomUtil = new Random()
-
-    while(!allocated) {
-
-      val x = randomUtil.nextInt(16)
-      val y = randomUtil.nextInt(16)
-
-      if (board.rows(x).columns(y).status.equals(".")) {
-        allocated = true
-        //board.rows(x).columns(y).status ="*"
-        Logger.info("x,y =" + x + " : " + y)
-        coordinates += x
-        coordinates += y
-
-      }else{
-        Logger.info("x,y allocated - find new one" + x + " : " + y)
-      }
-
     }
-    coordinates.toArray
-  }*/
+  }
 
+  //procesSalvo
+  private def processSalvo(board: Board, hit: Hit, spaceship: Spaceship,coordinates :Array[Int] ): Boolean ={
+    Logger.debug("----- processSalvo --------")
+    Logger.debug("space-x" + spaceship.x )
+    Logger.debug("space-y" + spaceship.y )
 
+    var success = false
 
-  /*/*this class creates spaceships for player*/
-  private def createSpaceships(board: Board): Array[Spaceship] ={
+    if(spaceship.x == coordinates(0) && spaceship.y == coordinates(1)) {
+      Logger.debug("spaceship hit = " + spaceship)
+      success = true
+      spaceship.status match {
+        case "active" =>{
+          hit.status = "hit"
+          spaceship.status = "hit"
+          boardService.updateBoard(board,coordinates, "X")
+        }
+        case "hit" =>{
+          hit.status = "kill"
+          spaceship.status = "kill"
+          //boardService.updateBoard(board,coordinates, "X")
+        }
+        case "kill" =>{
+          hit.status = "miss"
+        }
+        case _ =>{
+          Logger.debug("no match found for spaceship status =" + spaceship.status)
+        }
+      }
+    }else {
+      Logger.debug("spaceship hit = " + spaceship)
+      hit.status = "miss"
+      boardService.updateBoard(board,coordinates, "-")
+    }
+    success
+  }
 
-    var nextID = iDGeneratorService.getNext()
-    var coordinates = allocateCoordinates (board)
-    updateBoard(board, coordinates, "*")
-    val winger = Spaceship("spaceship-" + nextID, "Winger", coordinates(0), coordinates(1), true)
+  //String to coordinate array conversion
+  private def getCoordinate (position: String): Array[Int] ={
 
-    nextID = iDGeneratorService.getNext()
-    coordinates = allocateCoordinates (board)
-    updateBoard(board, coordinates, "*")
-    val angle = Spaceship("spaceship-" + nextID, "Angle", coordinates(0), coordinates(1), true)
+    Logger.debug("----- getCoordinate --------")
+    val arr = position.split("x")
 
-    nextID = iDGeneratorService.getNext()
-    coordinates = allocateCoordinates (board)
-    updateBoard(board, coordinates, "*")
-    val aClass = Spaceship("spaceship-" + nextID, "A-Class", coordinates(0), coordinates(1), true)
+    val x = decode(arr(0))
+    Logger.debug("x:" + x)
+    val y =  decode(arr(1))
+    Logger.debug("y:" + y)
 
-    nextID = iDGeneratorService.getNext()
-    coordinates = allocateCoordinates (board)
-    updateBoard(board, coordinates, "*")
-    val bClass = Spaceship("spaceship-" + nextID, "B-Class", coordinates(0), coordinates(1), true)
+    Array(x,y)
+  }
 
-    nextID = iDGeneratorService.getNext()
-    coordinates = allocateCoordinates (board)
-    updateBoard(board, coordinates, "*")
-    val sClass = Spaceship("spaceship-" + nextID, "S-Class", coordinates(0), coordinates(1), true)
+  //String to Int conversion
+  //def toInt( s: String ) = Try(s.toInt).toOption
 
-    Array(winger,angle,aClass,bClass,sClass)
+  def decode(str: String): Int ={
 
-  }*/
-
+      var code = Try(str.toInt).getOrElse(-1)
+      if(code > -1){
+        code
+      }else
+        {
+          code = str match {
+            case "A" => 10
+            case "B" => 11
+            case "C" => 12
+            case "D" => 13
+            case "E" => 14
+            case "F" => 15
+           }
+        }
+    code
+    }
 }
 
 
