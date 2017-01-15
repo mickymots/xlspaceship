@@ -64,7 +64,7 @@ trait GameFormatter {
       Json.obj(
       "self" -> Json.obj("user_id" -> gameStatus.self.id,
                           "board" -> selfBoard),
-      "opponent" ->   Json.obj("user_id" -> gameStatus.self.id,
+      "opponent" ->   Json.obj("user_id" -> gameStatus.opponent.id,
         "board" -> opponentBoard),
         "game" -> Json.obj("player_turn" -> gameStatus.nextTurn.id)
       )

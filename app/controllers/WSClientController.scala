@@ -32,4 +32,6 @@ class  WSClientController  @Inject() (ws: WSClient) extends Controller{
     val response = wsClientService.fireSalvo(salvo, ws)
     Ok(toJson("Shots fired = " + response))
   }
+
+
 }

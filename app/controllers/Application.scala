@@ -10,9 +10,6 @@ import play.api.Logger
 import play.api.libs.ws._
 import play.api.libs.json._
 
-//object  Application  extends Application {
-//
-//}
 
 class Application extends BaseController {
   val gameService: GameService = GameService
@@ -38,9 +35,9 @@ class Application extends BaseController {
     val gameStatus = gameService.getGameStatus(gameID)
 
     if (gameStatus != null) {
-      Ok(toJson(gameStatus))
+      Ok(toJson(gameStatus)).withHeaders("Access-Control-Allow-Origin" -> "*", "Access-Control-Allow-Methods" -> "GET", "Access-Control-Allow-Headers" -> "Origin, X-Requested-With, Content-Type, Accept")
     } else
-      Ok(toJson(Map("game" -> "game not found")))
+      Ok(toJson(Map("game" -> "game not found"))).withHeaders("Access-Control-Allow-Origin" -> "*", "Access-Control-Allow-Methods" -> "GET", "Access-Control-Allow-Headers" -> "Origin, X-Requested-With, Content-Type, Accept")
   }
 
   /* newGame handles the simulation request for a game from user. Response contains player details and game_id.*/
@@ -54,13 +51,22 @@ class Application extends BaseController {
 
         Logger.debug("gameRequest = " + gameRequest)
 
-        Ok(createNewGame(gameRequest))
+        Ok(createNewGame(gameRequest)).withHeaders("Access-Control-Allow-Origin" -> "*", "Access-Control-Allow-Methods" -> "GET", "Access-Control-Allow-Headers" -> "Origin, X-Requested-With, Content-Type, Accept")
       }
       case e: JsError => {
         // error handling flow
-        Ok(toJson("Error in request"))
+        Ok(toJson("Error in request")).withHeaders("Access-Control-Allow-Origin" -> "*", "Access-Control-Allow-Methods" -> "GET", "Access-Control-Allow-Headers" -> "Origin, X-Requested-With, Content-Type, Accept")
+
       }
     }
+  }
+
+  def preFlight() = Action { implicit request =>
+    Ok.withHeaders("Access-Control-Allow-Origin" -> "*", "Access-Control-Allow-Methods" -> "GET", "Access-Control-Allow-Headers" -> "Origin, X-Requested-With, Content-Type, Accept")
+  }
+
+  def preFlightWithParam(gameID: String) = Action { implicit request =>
+    Ok.withHeaders("Access-Control-Allow-Origin" -> "*", "Access-Control-Allow-Methods" -> "GET", "Access-Control-Allow-Headers" -> "Origin, X-Requested-With, Content-Type, Accept")
   }
 
   /*Delegate method that invokes service calls and processes response from service*/

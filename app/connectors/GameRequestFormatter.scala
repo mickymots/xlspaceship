@@ -20,5 +20,4 @@ trait GameRequestFormatter {
       (JsPath \ "spaceship_protocol").read[Protocol]
     )(GameRequest.apply _)
 
-
 }
