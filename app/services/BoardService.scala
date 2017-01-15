@@ -2,7 +2,7 @@ package services
 
 import models._
 
-import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.util.Random
 /**
   * Created by amit.prakash.singh on 12/01/2017.
@@ -18,6 +18,7 @@ object BoardService extends BoardService {
 trait BoardService {
 
   val iDGeneratorService : IDGeneratorService
+  val occupiedList = scala.collection.mutable.ListBuffer[Coordinates]()
 
   def createBoard(): Board ={
 
@@ -44,6 +45,50 @@ trait BoardService {
 
 
   /*get random position on board*/
+  def allocateCoordinates(board: Board, spaceshipConfig:  List[Coordinates], range:  List[Coordinates]): ListBuffer[Coordinates] = {
+    Logger.debug("---Allocate updated coordinates---")
+    var allocated = false
+    var coordinatesList: ListBuffer[Coordinates] = null
+    do {
+      // Step 1. get random coordinates on board
+      val randomUtil = new Random()
+      val x = randomUtil.nextInt(16)
+      val y = randomUtil.nextInt(16)
+
+      println("root:  x = " + x + " y = " + y )
+
+      //Step 2. create updated coordinate list from configuration
+      val rangeCoordinatesList = {
+        val coordinates = range map (c =>
+          Coordinates(c.x + x, c.y + y)
+          )
+        coordinates.toList
+      }
+
+      //Step 3. check if coordinated in range and not occupied?
+      var ok = true
+      for (c <- rangeCoordinatesList) {
+        if (c.x > 15 || c.y > 15 || !board.rows(c.y).columns(c.x).status.equals(".")) {
+          ok = false
+        }
+      }
+
+      if(ok) {
+        coordinatesList = {
+          val coordinates = spaceshipConfig map (c =>
+            Coordinates(c.x + x, c.y + y)
+            )
+          coordinates.to[ListBuffer]
+        }
+        allocated = ok
+      }
+
+    }while(!allocated)
+
+    coordinatesList
+  }
+
+  /*get random position on board*/
   def allocateCoordinates(board: Board): Array[Int] = {
 
     Logger.debug("---Allocate coordinates---")
@@ -59,7 +104,7 @@ trait BoardService {
 
       if (board.rows(x).columns(y).status.equals(".")) {
         allocated = true
-        //board.rows(x).columns(y).status ="*"
+
         Logger.info("x,y =" + x + " : " + y)
         coordinates += x
         coordinates += y
@@ -74,11 +119,18 @@ trait BoardService {
 
 
   /* update board status */
-  def updateBoard(board: Board, coordinates: Array[Int], status: String ): Unit ={
-
+  /*def updateBoard(board: Board, coordinates: Array[Int], status: String ): Unit ={
     board.rows(coordinates(0)).columns(coordinates(1)).status = status
+  }*/
 
+  /* update board status */
+  def updateBoard(board: Board, coordinatesList: ListBuffer[Coordinates], status: String ): Unit ={
+    for (c <- coordinatesList) {
+      board.rows(c.y).columns(c.x).status = status
+      occupiedList += c
+      }
   }
+
 
 }
 

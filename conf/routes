@@ -7,3 +7,6 @@ PUT /xl-spaceship/protocol/game/:gameID controllers.Application.acceptSalvo(game
 
 #Get current game status
 GET /xl-spaceship/user/game/:gameID controllers.Application.showGameStatus(gameID: String)
+
+#Fire salvo on opponent spaceships
+PUT /xl-spaceship/user/game/:gameID/fire controllers.WSClientController.fireSalvo(gameID: String)

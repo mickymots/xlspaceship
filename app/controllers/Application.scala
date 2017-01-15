@@ -1,26 +1,22 @@
 package controllers
 
+import javax.inject.Inject
+
 import play.api.mvc._
 import play.api.libs.json.Json._
-import services.GameService
-import connectors.GameFormatter
-import play.api.libs.json._
+import services.{GameService, WSClientService}
 import models.{GameRequest, Protocol, Salvo}
 import play.api.Logger
+import play.api.libs.ws._
 import play.api.libs.json._
-import play.api.libs.json.Reads._
-import play.api.libs.functional.syntax._
 
-object Application extends Application {
+//object  Application  extends Application {
+//
+//}
 
+class Application extends BaseController {
   val gameService: GameService = GameService
-}
-
-
-trait Application extends BaseController  {
-
-  def gameService: GameService
-
+  //def gameService: GameService
 
   /*Handles the incoming salvo from opponent*/
   def acceptSalvo(gameID: String) = Action { implicit request =>
@@ -30,8 +26,8 @@ trait Application extends BaseController  {
     Logger.debug("salvo" + salvo)
     val status = gameService.acceptSalvo(gameID, salvo)
 
-    if(!status.gameComplete)
-    Ok(toJson(status))
+    if (!status.gameComplete)
+      Ok(toJson(status))
     else
       NotFound(toJson(status))
   }
@@ -41,10 +37,10 @@ trait Application extends BaseController  {
 
     val gameStatus = gameService.getGameStatus(gameID)
 
-    if(gameStatus != null){
+    if (gameStatus != null) {
       Ok(toJson(gameStatus))
-    }else
-    Ok("Game not found")
+    } else
+      Ok(toJson(Map("game" -> "game not found")))
   }
 
   /* newGame handles the simulation request for a game from user. Response contains player details and game_id.*/
@@ -68,7 +64,7 @@ trait Application extends BaseController  {
   }
 
   /*Delegate method that invokes service calls and processes response from service*/
-  private def createNewGame (gameRequest: GameRequest) = {
+  private def createNewGame(gameRequest: GameRequest) = {
 
     val game = gameService createGame gameRequest
 
@@ -79,6 +75,5 @@ trait Application extends BaseController  {
       "starting" -> game.nextTurn.id
     ))
   }
-
 
 }
