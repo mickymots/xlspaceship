@@ -69,53 +69,60 @@ trait GameService {
     games get gameID match {
       case s: Option[Game] => {
 
-        val game = s.get
-        val hits = ArrayBuffer[Hit]()
-        //Step 2. if game not complete process salvo , BW
-        if (!game.complete) {
-          //Step 2.1 - load spaceships
-          val spaceships = game.self.spaceships
+        if (s.isEmpty) {
+          println("game not found")
+          SalvoStatus(null, null, false, false)
+        } else {
 
-          //Step 2.2 loop all salvo hits
-          for (position <- salvo.hits) {
+          val game = s.get
+          val hits = ArrayBuffer[Hit]()
+          //Step 2. if game not complete process salvo , BW
+          if (!game.complete) {
+            //Step 2.1 - load spaceships
+            val spaceships = game.self.spaceships
 
-            //Step 2.2.1 create empty hit with status miss and get coordinates
-            val hit = Hit(position, "miss")
-            val coordinates = getCoordinate(position)
+            //Step 2.2 loop all salvo hits
+            for (position <- salvo.hits) {
 
-            var success = false
-            //Step 2.2.2 loop through spaceships to record hit, if any
-            for (spaceship <- spaceships) {
-              if (!success)
-                success = processSalvo(game.self.board, hit, spaceship, coordinates)
+              //Step 2.2.1 create empty hit with status miss and get coordinates
+              val hit = Hit(position, "miss")
+              val coordinates = getCoordinate(position)
+
+              var success = false
+              //Step 2.2.2 loop through spaceships to record hit, if any
+              for (spaceship <- spaceships) {
+                if (!success)
+                  success = processSalvo(game.self.board, hit, spaceship, coordinates)
+              }
+
+              //Step 2.2.3 add hit to array
+              hits += hit
             }
 
-            //Step 2.2.3 add hit to array
-            hits += hit
+            //Step 2.3 Check game status
+            var gameOver = true
+            for (spaceship <- spaceships) {
+              if (spaceship.active)
+                gameOver = false
+            }
+
+            if (gameOver)
+              game.complete = gameOver
+
+            SalvoStatus(hits, game.self, gameOver, false)
+
+          } else {
+            //Step 3.create all miss salvo with winner
+            for (position <- salvo.hits) {
+              val hit = Hit(position, "miss")
+              hits += hit
+            }
+            SalvoStatus(hits, game.self, game.complete, game.complete)
           }
-
-          //Step 2.3 Check game status
-          var gameOver = true
-          for (spaceship <- spaceships) {
-            if (spaceship.active)
-              gameOver = false
-          }
-
-          if (gameOver)
-            game.complete = gameOver
-
-          SalvoStatus(hits, game.self, gameOver, false)
-
-        } else {
-          //Step 3.create all miss salvo with winner
-          for (position <- salvo.hits) {
-            val hit = Hit(position, "miss")
-            hits += hit
-          }
-          SalvoStatus(hits, game.self, game.complete, game.complete)
+          //close here
         }
       }
-      //case None => println("game not found")
+
     }
   }
 
@@ -172,9 +179,9 @@ trait GameService {
     Logger.debug("----- getCoordinate --------")
     val arr = position.split("x")
 
-    val x = decode(arr(0))
+    val x = decode(arr(1))
     Logger.debug("x:" + x)
-    val y =  decode(arr(1))
+    val y =  decode(arr(0))
     Logger.debug("y:" + y)
 
     Array(x,y)
