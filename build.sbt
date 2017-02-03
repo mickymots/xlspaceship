@@ -16,4 +16,6 @@ libraryDependencies +=
 
 libraryDependencies += "javax.inject" % "javax.inject" % "1"
 
+libraryDependencies += specs2 % Test
+
 resolvers += "OSS Sonatype" at "https://repo1.maven.org/maven2/"

@@ -13,7 +13,6 @@ import play.api.libs.json._
 
 class Application extends BaseController {
   val gameService: GameService = GameService
-  //def gameService: GameService
 
   /*Handles the incoming salvo from opponent*/
   def acceptSalvo(gameID: String) = Action { implicit request =>
@@ -23,10 +22,16 @@ class Application extends BaseController {
     Logger.debug("salvo" + salvo)
     val status = gameService.acceptSalvo(gameID, salvo)
 
-    if (!status.gameComplete)
-      Ok(toJson(status))
+    if (!status.gameComplete) {
+    Ok(toJson(status))
+   }
     else
       NotFound(toJson(status))
+  }
+
+  /*Run this auto pilot after the response has been sent???*/
+  private def autoPilotCommand(): Unit ={
+    println("Ran after sending the accept salvo status")
   }
 
   /*Handles the current game status request from the user*/
